@@ -1,4 +1,11 @@
 {
+  "name": "absen-iqbal",
+  "version": "1.0.0",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "node app.js"
+  },
   "dependencies": {
     "cookie-parser": "^1.4.7",
     "express": "^5.2.1"
