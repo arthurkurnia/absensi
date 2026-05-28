@@ -1,72 +1,13 @@
 {
-    "3331250135": {
-      "nama": "Firdaus Ramadhan",
-      "password": "masuk123",
-      "pernahGantiPassword": false,
-      "status": "approved",
-      "alasan": ""
-    },
-    "5552250170": {
-      "nama": "Ravelda Naftia",
-      "password": "masuk123",
-      "pernahGantiPassword": true,
-      "status": "approved",
-      "alasan": ""
-    },
-    "6670250141": {
-      "nama": "M Hiqbal Fauzan",
-      "password": "masuk123",
-      "pernahGantiPassword": false,
-      "status": "approved",
-      "alasan": ""
-    },
-    "8884250060": {
-      "nama": "Farisa Zahra’u Rusyadia",
-      "password": "masuk123",
-      "pernahGantiPassword": false,
-      "status": "approved",
-      "alasan": ""
-    }
-  },
-  "dosen": {
-    "dosen1": {
-      "nama": "Pak Budi",
-      "password": "123"
-    },
-    "dosen2": {
-      "nama": "Asep Karmalos",
-      "password": "Masuk123"
-    }
-  },
-  "admin": {
-    "admin": "admin123"
-  },
-  "absensi": [
+  "mahasiswa": [],
+  "dosen": [],
+  "admin": [
     {
-      "nim": "5552250170",
-      "matkul": "Kalkulus",
-      "status": "Hadir",
-      "tanggal": "2026-05-28"
-    },
-    {
-      "nim": "5552250170",
-      "matkul": "Algoritma Pemrograman",
-      "status": "Hadir",
-      "tanggal": "2026-05-28"
+      "id": "admin_01",
+      "username": "admin",
+      "password": "admin123",
+      "nama": "Admin Utama"
     }
   ],
-  "kodeAktivasi": {
-    "189940": {
-      "matkul": "Kalkulus",
-      "expiredAt": 1779985364771
-    },
-    "437292": {
-      "matkul": "Kalkulus",
-      "expiredAt": 1779983890809
-    },
-    "669668": {
-      "matkul": "Algoritma Pemrograman",
-      "expiredAt": 1779984654459
-    }
-  }
-
+  "absensi": []
+}
