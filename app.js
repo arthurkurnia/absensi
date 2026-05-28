@@ -47,44 +47,27 @@ function renderHTML(title, content) {
     </html>`;
 }
 
-// ================= ROUTE UTAMA (DOMAIN ASLI) =================
 app.get('/', (req, res) => {
-    // 1. Cek dulu apakah ada cookie login mahasiswa yang aktif
-    if (req.cookies.userSessionMhs) {
-        return res.redirect(`/mahasiswa/dashboard/${req.cookies.userSessionMhs}`);
-    }
-    // 2. Cek apakah ada cookie login dosen yang aktif
-    if (req.cookies.userSessionDosen) {
-        return res.redirect('/guru/dashboard');
-    }
-    // 3. Cek apakah ada cookie login admin yang aktif
-    if (req.cookies.userSessionAdmin) {
-        return res.redirect('/admin/dashboard');
-    }
-    
-    // 4. KALO GAK ADA COOKIE SAMA SEKALI, LANGSUNG LEMPAR KE /mahasiswa
+    if (req.cookies.userSessionMhs) return res.redirect(`/mahasiswa/dashboard/${req.cookies.userSessionMhs}`);
+    if (req.cookies.userSessionDosen) return res.redirect('/guru/dashboard');
+    if (req.cookies.userSessionAdmin) return res.redirect('/admin/dashboard');
     res.redirect('/mahasiswa');
 });
 
-// ================= ROUTE MAHASISWA =================
 app.get('/mahasiswa', (req, res) => {
     if (req.cookies.userSessionMhs) return res.redirect(`/mahasiswa/dashboard/${req.cookies.userSessionMhs}`);
     const error = req.query.err ? `<div class="bg-rose-50 border-l-4 border-rose-500 text-rose-700 p-3 rounded-r-xl mb-4 text-sm font-medium shadow-sm">${req.query.err}</div>` : '';
     const msg = req.query.msg ? `<div class="bg-emerald-50 border-l-4 border-emerald-500 text-emerald-700 p-3 rounded-r-xl mb-4 text-sm font-medium shadow-sm">${req.query.msg}</div>` : '';
-    
+
     const content = `
     <div class="max-w-md mx-auto mt-10">
-        
-        <!-- ================= MENU LOGIN MAHASISWA ================= -->
         <div id="loginPage" class="bg-white/90 backdrop-blur-md p-8 rounded-2xl shadow-xl border border-white/60">
             <div class="text-center mb-6">
                 <div class="inline-flex p-3 bg-blue-50 text-blue-600 rounded-xl mb-2 text-xl">👤</div>
                 <h2 class="text-xl font-extrabold text-slate-800 tracking-tight">Login Mahasiswa</h2>
                 <p class="text-xs text-gray-400 mt-1">Silakan masuk dengan akun Mahasiswa</p>
             </div>
-            
             ${error} ${msg}
-            
             <form action="/mahasiswa/login" method="POST" class="space-y-4">
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">NIM Mahasiswa</label>
@@ -96,8 +79,6 @@ app.get('/mahasiswa', (req, res) => {
                 </div>
                 <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl font-bold transition shadow-md shadow-blue-500/10 active:scale-[0.99]">Masuk ke Sistem</button>
             </form>
-            
-            <!-- TOMBOL UNTUK PINDAH KE DAFTAR (HILANGIN LOGIN) -->
             <div class="mt-6 pt-4 border-t border-slate-100 text-center">
                 <button onclick="pindahKeDaftar()" class="text-xs text-indigo-600 font-bold hover:underline cursor-pointer">
                     Belum punya akun? Daftar Akun Baru di Sini →
@@ -105,14 +86,12 @@ app.get('/mahasiswa', (req, res) => {
             </div>
         </div>
 
-        <!-- ================= MENU DAFTAR AKUN (DEFAULT TERSEMBUNYI) ================= -->
         <div id="registerPage" class="hidden bg-white/90 backdrop-blur-md p-8 rounded-2xl shadow-xl border border-white/60">
             <div class="text-center mb-6">
                 <div class="inline-flex p-3 bg-indigo-50 text-indigo-600 rounded-xl mb-2 text-xl">📝</div>
                 <h2 class="text-xl font-extrabold text-slate-800 tracking-tight">Daftar Akun Baru</h2>
                 <p class="text-xs text-gray-400 mt-1">Isi data untuk pengajuan akun ke admin</p>
             </div>
-            
             <form action="/mahasiswa/daftar" method="POST" class="space-y-4">
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Nama Lengkap</label>
@@ -130,32 +109,23 @@ app.get('/mahasiswa', (req, res) => {
                     <input type="checkbox" required id="agree" class="mt-1">
                     <label for="agree" class="text-xs text-gray-500 font-medium">Saya menyatakan data yang saya isi sudah benar dan asli.</label>
                 </div>
-                <!-- PAS DIKLIK DIA SUBMIT FORM DAN OTOMATIS REDIRECT BALIK KE LOGIN VIA BACKEND -->
                 <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-xl font-bold transition shadow-md">Kirim Pengajuan</button>
             </form>
-            
             <div class="mt-4 text-center">
                 <button onclick="pindahKeLogin()" class="text-xs text-gray-400 font-semibold hover:text-gray-600 cursor-pointer">
                     ← Kembali ke Menu Login
                 </button>
             </div>
         </div>
-
     </div>
 
-    <!-- JAVASCRIPT COPAS DI SINI BUAT HANDLE PERPINDAHAN PAGE TOTAL -->
     <script>
         function pindahKeDaftar() {
-            // Hilangin halaman login total
             document.getElementById('loginPage').classList.add('hidden');
-            // Munculin halaman daftar akun baru
             document.getElementById('registerPage').classList.remove('hidden');
         }
-
         function pindahKeLogin() {
-            // Hilangin halaman daftar total
             document.getElementById('registerPage').classList.add('hidden');
-            // Munculin halaman login kembali
             document.getElementById('loginPage').classList.remove('hidden');
         }
     </script>
@@ -163,39 +133,38 @@ app.get('/mahasiswa', (req, res) => {
     res.send(renderHTML('Login Mahasiswa', content));
 });
 
-app.post('/mahasiswa/login', (req, res) => {
+app.post('/mahasiswa/login', async (req, res) => {
     const { nim, password } = req.body;
-    const result = Mahasiswa.login(nim, password);
+    const result = await Mahasiswa.login(nim, password);
     if (!result.success) return res.redirect(`/mahasiswa?err=${encodeURIComponent(result.message)}`);
-    
     res.cookie('userSessionMhs', nim, COOKIE_OPTIONS);
     res.redirect(`/mahasiswa/dashboard/${nim}`);
 });
 
-app.post('/mahasiswa/daftar', (req, res) => {
+app.post('/mahasiswa/daftar', async (req, res) => {
     const { nim, nama, password } = req.body;
-    const result = Mahasiswa.daftarBaru(nim, nama, password);
+    const result = await Mahasiswa.daftarBaru(nim, nama, password);
     if (!result.success) return res.redirect(`/mahasiswa?err=${encodeURIComponent(result.message)}`);
     res.redirect(`/mahasiswa?msg=${encodeURIComponent(result.message)}`);
 });
 
-app.get('/mahasiswa/dashboard/:nim', (req, res) => {
+app.get('/mahasiswa/dashboard/:nim', async (req, res) => {
     const { nim } = req.params;
-    const db = Mahasiswa.getDB();
+    const db = await (async () => { await Mahasiswa.refreshCache(); return Mahasiswa.getDB(); })();
     const dataMhs = db.mahasiswa[nim];
     if (!dataMhs || dataMhs.status !== 'approved') return res.redirect('/mahasiswa');
 
     const error = req.query.err ? `<div class="bg-rose-50 border-l-4 border-rose-500 text-rose-700 p-3 rounded-r-xl mb-4 text-sm font-medium">${req.query.err}</div>` : '';
     const msg = req.query.msg ? `<div class="bg-emerald-50 border-l-4 border-emerald-500 text-emerald-700 p-3 rounded-r-xl mb-4 text-sm font-medium">${req.query.msg}</div>` : '';
 
-    const alertGantiPassword = !dataMhs.pernahGantiPassword 
+    const alertGantiPassword = !dataMhs.pernahGantiPassword
         ? `<div class="bg-amber-50 border-l-4 border-amber-500 text-amber-900 p-4 rounded-r-xl mb-6 text-sm shadow-sm">
             🔒 <b class="font-bold">Keamanan Akun:</b> Anda masih menggunakan password bawaan. Yuk ganti dulu di form bawah!
-           </div>` 
+           </div>`
         : '';
 
     const bulanFilter = req.query.bulan || '';
-    const rekap = Mahasiswa.getRekapPribadi(nim, bulanFilter);
+    const rekap = await Mahasiswa.getRekapPribadi(nim, bulanFilter);
 
     const content = `
     <div class="bg-white/90 backdrop-blur-md p-6 sm:p-8 rounded-2xl shadow-xl border border-slate-100 mt-6 max-w-2xl mx-auto">
@@ -225,7 +194,7 @@ app.get('/mahasiswa/dashboard/:nim', (req, res) => {
 
         <div class="grid grid-cols-2 gap-4 mb-6">
             <div class="bg-emerald-50 border border-emerald-100 p-4 rounded-xl text-center"><span class="text-3xl font-black text-emerald-600">${rekap.totalHadir}</span><p class="text-xs text-emerald-600 font-bold mt-1">Total Hadir</p></div>
-            <div class="bg-rose-50 border border-rose-100 p-4 rounded-xl text-center"><span class="text-3xl font-black text-rose-600">${rekap.totalTeacher || rekap.totalTidakHadir}</span><p class="text-xs text-rose-600 font-bold mt-1">Mangkir/Sakit</p></div>
+            <div class="bg-rose-50 border border-rose-100 p-4 rounded-xl text-center"><span class="text-3xl font-black text-rose-600">${rekap.totalTidakHadir}</span><p class="text-xs text-rose-600 font-bold mt-1">Mangkir/Sakit</p></div>
         </div>
 
         <div class="flex justify-between items-center mb-4">
@@ -256,17 +225,17 @@ app.get('/mahasiswa/dashboard/:nim', (req, res) => {
     res.send(renderHTML('Dashboard Mahasiswa', content));
 });
 
-app.post('/mahasiswa/absen-masuk/:nim', (req, res) => {
+app.post('/mahasiswa/absen-masuk/:nim', async (req, res) => {
     const { nim } = req.params;
     const { kode, matkul } = req.body;
-    const resAbsen = Mahasiswa.inputKodeAbsen(nim, kode, matkul);
+    const resAbsen = await Mahasiswa.inputKodeAbsen(nim, kode, matkul);
     if (!resAbsen.success) return res.redirect(`/mahasiswa/dashboard/${nim}?err=${encodeURIComponent(resAbsen.message)}`);
     res.redirect(`/mahasiswa/dashboard/${nim}?msg=${encodeURIComponent(resAbsen.message)}`);
 });
 
-app.post('/mahasiswa/ganti-password/:nim', (req, res) => {
+app.post('/mahasiswa/ganti-password/:nim', async (req, res) => {
     const { nim } = req.params;
-    Mahasiswa.gantiPassword(nim, req.body.new_password);
+    await Mahasiswa.gantiPassword(nim, req.body.new_password);
     res.redirect(`/mahasiswa/dashboard/${nim}?msg=Password%20kamu%20berhasil%20diupdate!`);
 });
 
@@ -292,19 +261,19 @@ app.get('/guru', (req, res) => {
     res.send(renderHTML('Login Dosen', content));
 });
 
-app.post('/guru/login', (req, res) => {
+app.post('/guru/login', async (req, res) => {
     const { username, password } = req.body;
-    const result = Dosen.login(username, password);
+    const result = await Dosen.login(username, password);
     if (!result.success) return res.redirect('/guru?err=Kredensial%20Dosen%20Salah!');
     res.cookie('userSessionDosen', username, COOKIE_OPTIONS);
     res.redirect('/guru/dashboard');
 });
 
-app.get('/guru/dashboard', (req, res) => {
+app.get('/guru/dashboard', async (req, res) => {
     if (!req.cookies.userSessionDosen) return res.redirect('/guru');
     const tokenBuat = req.query.tokenBuat ? JSON.parse(decodeURIComponent(req.query.tokenBuat)) : null;
     const bulanFilter = req.query.bulan || '';
-    const dataRekap = Dosen.getRekapMatkul(bulanFilter);
+    const dataRekap = await Dosen.getRekapMatkul(bulanFilter);
 
     const tokenAlert = tokenBuat ? `<div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl mb-6 text-sm">✨ Token dibuat! Matkul: <b>${tokenBuat.matkul}</b> | Kode: <span class="text-xl font-black text-indigo-700 bg-white border border-slate-200 px-3 py-0.5 rounded-xl font-mono">${tokenBuat.kode}</span></div>` : '';
 
@@ -338,20 +307,19 @@ app.get('/guru/dashboard', (req, res) => {
     res.send(renderHTML('Dashboard Dosen', content));
 });
 
-app.post('/guru/buat-token', (req, res) => {
+app.post('/guru/buat-token', async (req, res) => {
     const { matkul, durasi } = req.body;
-    const tokenObj = Dosen.buatKodeAbsen(matkul, durasi);
+    const tokenObj = await Dosen.buatKodeAbsen(matkul, durasi);
     res.redirect(`/guru/dashboard?tokenBuat=${encodeURIComponent(JSON.stringify(tokenObj))}`);
 });
 
 app.get('/guru/logout', (req, res) => { res.clearCookie('userSessionDosen'); res.redirect('/guru'); });
-app.get('/guru/export-pdf', (req, res) => {
+app.get('/guru/export-pdf', async (req, res) => {
     const { bulan } = req.query;
-    const rekap = Dosen.getRekapMatkul(bulan);
+    const rekap = await Dosen.getRekapMatkul(bulan);
     res.send(`<html><body><h2>LAPORAN ABSENSI</h2><pre>${JSON.stringify(rekap.matkulGroup, null, 2)}</pre><script>window.print();</script></body></html>`);
 });
 
-// ================= ROUTE ADMIN + EDIT DAFTAR APPROVAL =================
 app.get('/admin', (req, res) => {
     if (req.cookies.userSessionAdmin) return res.redirect('/admin/dashboard');
     const content = `
@@ -366,21 +334,22 @@ app.get('/admin', (req, res) => {
     res.send(renderHTML('Login Admin', content));
 });
 
-app.post('/admin/login', (req, res) => {
+app.post('/admin/login', async (req, res) => {
     const { username, password } = req.body;
-    if (Admin.login(username, password).success) {
+    const result = await Admin.login(username, password);
+    if (result.success) {
         res.cookie('userSessionAdmin', username, COOKIE_OPTIONS);
         return res.redirect('/admin/dashboard');
     }
     res.redirect('/admin');
 });
 
-app.get('/admin/dashboard', (req, res) => {
+app.get('/admin/dashboard', async (req, res) => {
     if (!req.cookies.userSessionAdmin) return res.redirect('/admin');
-    const listDosen = Dosen.getAll();
+    const listDosen = await Dosen.getAll();
+    await Mahasiswa.refreshCache();
     const db = Mahasiswa.getDB();
-    
-    // Ambil list pengajuan mahasiswa dengan status pending (SESUAI REQUEST)
+
     const pengajuanMhs = Object.entries(db.mahasiswa).filter(([nim, data]) => data.status === 'pending');
 
     let pengajuanHtml = '';
@@ -413,7 +382,7 @@ app.get('/admin/dashboard', (req, res) => {
             <h2 class="text-xl font-black text-slate-800">🛠️ Panel Admin Control</h2>
             <a href="/admin/logout" class="text-xs bg-rose-50 text-rose-600 px-3 py-2 rounded-xl font-bold">Log Out</a>
         </div>
-        
+
         <div class="mb-8 border border-slate-100 p-5 rounded-2xl bg-white shadow-sm">
             <h3 class="font-bold text-sm text-amber-600 uppercase tracking-wider mb-4">📥 Pengajuan Akun Mahasiswa Baru (${pengajuanMhs.length})</h3>
             ${pengajuanHtml || '<p class="text-gray-400 text-center py-4 text-xs font-medium">Tidak ada pengajuan akun baru saat ini.</p>'}
@@ -440,59 +409,63 @@ app.get('/admin/dashboard', (req, res) => {
     res.send(renderHTML('Dashboard Admin', content));
 });
 
-// ACTION APPROVE & REJECT MAHASISWA
-app.post('/admin/approve/:nim', (req, res) => {
+app.post('/admin/approve/:nim', async (req, res) => {
     const { nim } = req.params;
+    await Mahasiswa.refreshCache();
     const db = Mahasiswa.getDB();
     if (db.mahasiswa[nim]) {
         db.mahasiswa[nim].status = 'approved';
         Mahasiswa.saveDB(db);
+        if (process.env.JSONBIN_BIN_ID) {
+            const { default: fetch } = await import('node-fetch').catch(() => ({ default: globalThis.fetch }));
+            await fetch(`https://api.jsonbin.io/v3/b/${process.env.JSONBIN_BIN_ID}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'X-Master-Key': process.env.JSONBIN_API_KEY },
+                body: JSON.stringify(db)
+            });
+        }
     }
     res.redirect('/admin/dashboard');
 });
 
-app.post('/admin/reject/:nim', (req, res) => {
+app.post('/admin/reject/:nim', async (req, res) => {
     const { nim } = req.params;
     const { alasan } = req.body;
+    await Mahasiswa.refreshCache();
     const db = Mahasiswa.getDB();
     if (db.mahasiswa[nim]) {
         db.mahasiswa[nim].status = 'ditolak';
         db.mahasiswa[nim].alasan = alasan;
         Mahasiswa.saveDB(db);
+        if (process.env.JSONBIN_BIN_ID) {
+            const { default: fetch } = await import('node-fetch').catch(() => ({ default: globalThis.fetch }));
+            await fetch(`https://api.jsonbin.io/v3/b/${process.env.JSONBIN_BIN_ID}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'X-Master-Key': process.env.JSONBIN_API_KEY },
+                body: JSON.stringify(db)
+            });
+        }
     }
     res.redirect('/admin/dashboard');
 });
 
-app.post('/admin/add-dosen', (req, res) => {
+app.post('/admin/add-dosen', async (req, res) => {
     const { username, nama, password } = req.body;
-    Admin.buatAkunDosen(username, nama, password);
+    await Admin.buatAkunDosen(username, nama, password);
     res.redirect('/admin/dashboard');
 });
 
 app.get('/admin/logout', (req, res) => { res.clearCookie('userSessionAdmin'); res.redirect('/admin'); });
 
-// ================= HANDLE LINK NGASAL / TROLL (404 NOT FOUND) =================
-// CATATAN: Middleware ini WAJIB ditaruh di paling bawah setelah semua route selesai didefinisikan!
 app.use((req, res) => {
     const content = `
     <div class="text-center mt-16 max-w-md mx-auto bg-white/90 backdrop-blur-md p-8 rounded-2xl shadow-xl border border-white/60">
-        <div class="inline-flex p-4 bg-rose-50 text-rose-500 rounded-full mb-4 text-3xl font-black font-mono">
-            404
-        </div>
+        <div class="inline-flex p-4 bg-rose-50 text-rose-500 rounded-full mb-4 text-3xl font-black font-mono">404</div>
         <h2 class="text-xl font-black text-slate-800 tracking-tight">Halaman Gak Ketemu!</h2>
         <p class="text-sm text-gray-400 mt-2 font-medium">URL <code class="bg-slate-100 text-rose-600 px-1.5 py-0.5 rounded font-mono font-bold text-xs">${req.originalUrl}</code> kagak ada di sistem kita woy.</p>
-        
-        <!-- SENDERAN/TROLL BALIK BUAT SI IQBAL -->
-        <div class="mt-6 p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-500 italic">
-            "IQBAL GANTENG 123 😜"
-        </div>
-        
-        <a href="/" class="block mt-6 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold py-2.5 rounded-xl transition shadow-md">
-            ← Balik ke Menu Login
-        </a>
+        <div class="mt-6 p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-500 italic">"IQBAL GANTENG 123 😜"</div>
+        <a href="/" class="block mt-6 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold py-2.5 rounded-xl transition shadow-md">← Balik ke Menu Login</a>
     </div>`;
-    
-    // Set status code 404 biar secara teknis beneran NOT FOUND
     res.status(404).send(renderHTML('404 Not Found', content));
 });
 
