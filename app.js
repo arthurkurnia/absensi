@@ -3,7 +3,7 @@ const cookieParser = require('cookie-parser');
 const app = express();
 const PORT = 3000;
 
-const Mahasiswa = require('mahasiswa');
+const Mahasiswa = require('./lib/mahasiswa');
 const Dosen = require('./lib/dosen');
 const Admin = require('./lib/admin');
 
