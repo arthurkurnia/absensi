@@ -1,19 +1,4 @@
 {
-  "mahasiswa": {
-    "8821312": {
-      "nama": "Jembut Com",
-      "password": "masuk123",
-      "pernahGantiPassword": false,
-      "status": "ditolak",
-      "alasan": "NIM Salah"
-    },
-    "882131212": {
-      "nama": "Jembut Com",
-      "password": "masuk123",
-      "pernahGantiPassword": false,
-      "status": "ditolak",
-      "alasan": "Akun Terdouble"
-    },
     "3331250135": {
       "nama": "Firdaus Ramadhan",
       "password": "masuk123",
